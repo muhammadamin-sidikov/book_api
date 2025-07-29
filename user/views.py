@@ -1,11 +1,13 @@
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer
+from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer, AuthorSerializer
+from permissions import IsStaffOrReadeOnly
+from .models import Author
 
 User = get_user_model()
 
@@ -43,7 +45,10 @@ class LoginAPIView(APIView):
             'access': str(refresh.access_token),
         }, status=status.HTTP_200_OK)
 
-
+class AuthorViewSet(viewsets.ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    permission_classes = [IsStaffOrReadeOnly]
 
 
 

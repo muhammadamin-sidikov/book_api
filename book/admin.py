@@ -1,18 +1,26 @@
 from django.contrib import admin
-from .models import Books, BookImage, Star, Comment, Like
+from .models import Books, BookImage, Star, Comment, Like, BookStock
 
 
 class BookImageInline(admin.TabularInline):
     model = BookImage
+    fk_name = 'book'
     extra = 1
 
 
 @admin.register(Books)
 class BooksAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'author', 'isbn', 'quantity', 'price', 'publication_date')
+    list_display = ('id', 'title', 'author', 'isbn', 'publication_date')
     search_fields = ('title', 'author', 'isbn')
     list_filter = ('publication_date', 'publisher', 'book_language')
     inlines = [BookImageInline]
+
+
+@admin.register(BookStock)
+class BookStockAdmin(admin.ModelAdmin):
+    list_display = ('id', 'book', 'quantity', 'price')
+    search_fields = ('book__title',)
+    list_filter = ('book__title',)
 
 
 @admin.register(Star)

@@ -5,17 +5,22 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from permissions import IsStaffOrReadeOnly
 from .filters import BookFilter
-from .models import Books, BookImage, Star, Like, Comment
+from .models import Books, BookImage, Star, Like, Comment, BookStock
 from .serializers import (
     BooksSerializer, BookImageSerializer, StarSerializer,
     CommentSerializer, LikeDetailSerializer, BooksLikeSerializer,
-    StarAvgSerializer,
+    StarAvgSerializer, BookStockSerializer
 )
 
 class BooksViewSet(viewsets.ModelViewSet):
     queryset = Books.objects.all()
     serializer_class = BooksSerializer
     permission_classes = [IsStaffOrReadeOnly]
+
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_class = BookFilter
+    search_fields = ['title', 'description', 'author__name']
+    ordering_fields = ['price', 'pages', 'publication_date']
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -70,6 +75,13 @@ class LikeAPIView(APIView):
         else:
             return Response({"error": "Like not found"}, status=status.HTTP_404_NOT_FOUND)
 
+class BookStockViewSet(viewsets.ModelViewSet):
+    queryset = BookStock.objects.all()
+    serializer_class = BookStockSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -78,14 +90,4 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         book_id = self.request.data.get('book')
         serializer.save(user=self.request.user, book_id=book_id)
-
-class BookFilterViewSet(viewsets.ModelViewSet):
-    queryset = Books.objects.all()
-    serializer_class = BooksSerializer
-    permission_classes = [permissions.AllowAny]
-
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    filterset_class = BookFilter
-    search_fields = ['title', 'description', 'author__name']
-    ordering_fields = ['price', 'pages', 'publication_date']
 

@@ -3,13 +3,13 @@ from rest_framework.routers import DefaultRouter
 from .views import (BooksViewSet, BookImageViewSet,
                     StarViewSet, CommentViewSet,
                     LikeAPIView, BookStarAvgAPIView,
-                    BookFilterViewSet)
+                    BookStockViewSet)
 
 router = DefaultRouter()
-router.register(r'filter', BookFilterViewSet, basename='books')
 router.register('images', BookImageViewSet)
 router.register('stars', StarViewSet)
 router.register('comments', CommentViewSet)
+router.register(r'stocks', BookStockViewSet, basename='book-stock')
 router.register('book', BooksViewSet, basename='all-books')
 
 urlpatterns = [

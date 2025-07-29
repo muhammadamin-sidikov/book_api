@@ -1,6 +1,7 @@
 from user.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib import admin
+from .models import Author
 
 
 @admin.register(User)
@@ -24,3 +25,8 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('email', 'name', 'password1', 'password2', 'is_active', 'is_staff', 'is_superuser'),
         }),
     )
+
+@admin.register(Author)
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ['id', 'author', 'bio']
+    search_fields = ['author']

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Books, BookImage, Star, Comment, Like
+from .models import Books, BookImage, Star, Comment, Like, BookStock
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Avg
@@ -9,7 +9,7 @@ User = get_user_model()
 class BookImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookImage
-        fields = ['id', 'image']
+        fields = ['id', 'book', 'image']
 
 class StarSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
@@ -63,13 +63,30 @@ class CommentSerializer(serializers.ModelSerializer):
             'book': {'read_only': True},
         }
 
+class BookStockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookStock
+        fields = ['id', 'book', 'quantity', 'price']
+
+    def create(self, validated_data):
+        book = validated_data.get('book')
+        quantity = validated_data.get('quantity')
+        price = validated_data.get('price')
+
+        last_stock = BookStock.objects.filter(book=book).order_by('-created_at').first()
+        if last_stock and last_stock.quantity > 0:
+            quantity += last_stock.quantity
+
+        return BookStock.objects.create(book=book, quantity=quantity, price=price)
 
 class BooksSerializer(serializers.ModelSerializer):
-    images = BookImageSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
     star_avg = serializers.SerializerMethodField()
     comment = CommentSerializer(many=True, read_only=True)
     like_count = serializers.SerializerMethodField()
     user = serializers.StringRelatedField(read_only=True)
+    quantity = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Books
@@ -87,4 +104,15 @@ class BooksSerializer(serializers.ModelSerializer):
 
     def get_like_count(self, obj):
         return obj.like.count()
+
+    def get_quantity(self, obj):
+        stock = BookStock.objects.filter(book=obj).order_by('-created_at').first()
+        return stock.quantity if stock else 0
+
+    def get_price(self, obj):
+        stock = BookStock.objects.filter(book=obj).order_by('-created_at').first()
+        return stock.price if stock else 0
+
+    def get_image(self, obj):
+        return BookImage.objects.filter(book=obj).first()
 

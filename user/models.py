@@ -35,3 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+class Author(models.Model):
+    author = models.CharField(max_length=50)
+    bio = models.TextField(blank=True, null=True)
