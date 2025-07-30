@@ -23,10 +23,8 @@ class Books(BaseModel):
     publisher = models.CharField(max_length=50)                            # Nashriyot
     cover = models.CharField(max_length=50)                                # Muqovasi
     publication_date = models.DateField()                                  # Chop etilgan yili
-    quantity = models.IntegerField(validators=[MinValueValidator(0)])
     page_surface = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.title} - {self.author}"
