@@ -5,11 +5,11 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from permissions import IsStaffOrReadeOnly
 from .filters import BookFilter
-from .models import Books, BookImage, Star, Like, Comment, BookStock
+from .models import Books, BookImage, Star, Like, Comment, BookStock, BookCategory
 from .serializers import (
     BooksSerializer, BookImageSerializer, StarSerializer,
     CommentSerializer, LikeDetailSerializer, BooksLikeSerializer,
-    StarAvgSerializer, BookStockSerializer
+    StarAvgSerializer, BookStockSerializer, BookCategorySerializer
 )
 
 class BooksViewSet(viewsets.ModelViewSet):
@@ -80,7 +80,10 @@ class BookStockViewSet(viewsets.ModelViewSet):
     serializer_class = BookStockSerializer
     permission_classes = [permissions.IsAdminUser]
 
-
+class BookCategoryViewSet(viewsets.ModelViewSet):
+    queryset = BookCategory.objects.all()
+    serializer_class = BookCategorySerializer
+    permission_classes = [IsStaffOrReadeOnly]
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()

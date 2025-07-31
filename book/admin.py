@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Books, BookImage, Star, Comment, Like, BookStock
+from .models import Books, BookImage, Star, Comment, Like, BookStock, BookCategory
 
 
 class BookImageInline(admin.TabularInline):
@@ -14,6 +14,13 @@ class BooksAdmin(admin.ModelAdmin):
     search_fields = ('title', 'author', 'isbn')
     list_filter = ('publication_date', 'publisher', 'book_language')
     inlines = [BookImageInline]
+
+
+@admin.register(BookCategory)
+class BookCategoryAdmin(admin.ModelAdmin):
+    list_display = ('book', 'category')
+    list_filter = ('category',)
+    search_fields = ('book__title',)
 
 
 @admin.register(BookStock)

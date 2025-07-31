@@ -39,3 +39,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Author(models.Model):
     author = models.CharField(max_length=50)
     bio = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.author}"
+
+class Translator(models.Model):
+    full_name = models.CharField(max_length=50)
+    bio = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.full_name}"

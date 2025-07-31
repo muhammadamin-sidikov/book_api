@@ -3,9 +3,10 @@ from rest_framework.routers import DefaultRouter
 from .views import (BooksViewSet, BookImageViewSet,
                     StarViewSet, CommentViewSet,
                     LikeAPIView, BookStarAvgAPIView,
-                    BookStockViewSet)
+                    BookStockViewSet, BookCategoryViewSet)
 
 router = DefaultRouter()
+router.register('category', BookCategoryViewSet, basename='book-category')
 router.register('images', BookImageViewSet)
 router.register('stars', StarViewSet)
 router.register('comments', CommentViewSet)

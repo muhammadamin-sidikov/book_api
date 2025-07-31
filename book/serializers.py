@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Books, BookImage, Star, Comment, Like, BookStock
+from .models import Books, BookImage, Star, Comment, Like, BookStock, BookCategory
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Avg
@@ -79,22 +79,28 @@ class BookStockSerializer(serializers.ModelSerializer):
 
         return BookStock.objects.create(book=book, quantity=quantity, price=price)
 
+class BookCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookCategory
+        fields = ['id', 'book', 'category']
+
 class BooksSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
     star_avg = serializers.SerializerMethodField()
     comment = CommentSerializer(many=True, read_only=True)
     like_count = serializers.SerializerMethodField()
     user = serializers.StringRelatedField(read_only=True)
     quantity = serializers.SerializerMethodField()
     price = serializers.SerializerMethodField()
+    category = BookCategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Books
         fields = [
             'id', 'user', 'title', 'info', 'isbn', 'author', 'book_language',
-            'writing', 'translator', 'pages', 'publisher', 'cover',
+            'writing', 'translator', 'pages', 'publisher', 'cover', 'category',
             'publication_date', 'quantity', 'page_surface', 'country',
-            'created_at', 'price', 'images', 'star_avg', 'comment', 'like_count',
+            'created_at', 'price', 'image', 'star_avg', 'comment', 'like_count',
         ]
 
     def get_star_avg(self, obj):

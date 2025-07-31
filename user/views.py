@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer, AuthorSerializer
+from .serializers import UserSerializer, UserCreateSerializer, LoginSerializer, AuthorSerializer, TranslatorSerializer
 from permissions import IsStaffOrReadeOnly
-from .models import Author
+from .models import Author, Translator
 
 User = get_user_model()
 
@@ -48,6 +48,11 @@ class LoginAPIView(APIView):
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    permission_classes = [IsStaffOrReadeOnly]
+
+class TranslatorViewSet(viewsets.ModelViewSet):
+    queryset = Translator.objects.all()
+    serializer_class = TranslatorSerializer
     permission_classes = [IsStaffOrReadeOnly]
 
 

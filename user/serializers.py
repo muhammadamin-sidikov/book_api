@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils.translation import gettext_lazy as _
-from .models import Author
+from .models import Author, Translator
 
 User = get_user_model()
 
@@ -56,6 +56,11 @@ class LoginSerializer(serializers.Serializer):
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
+        fields = ['id', 'author', 'bio']
+
+class TranslatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Translator
         fields = ['id', 'author', 'bio']
 
 

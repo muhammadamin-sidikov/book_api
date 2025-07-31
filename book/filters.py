@@ -3,6 +3,7 @@ from .models import Books
 
 class BookFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(field_name='title', lookup_expr='icontains')
+    category = django_filters.CharFilter(field_name='book_category__category', lookup_expr='icontains')
 
     price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
     price__lt = django_filters.NumberFilter(field_name='price', lookup_expr='lt')
