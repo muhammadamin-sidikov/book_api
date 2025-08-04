@@ -3,12 +3,12 @@ from .models import Books
 
 class BookFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(field_name='title', lookup_expr='icontains')
-    category = django_filters.CharFilter(field_name='book_category__category', lookup_expr='icontains')
+    category = django_filters.CharFilter(field_name='book_category__category__name', lookup_expr='icontains')
 
-    price__gt = django_filters.NumberFilter(field_name='price', lookup_expr='gt')
-    price__lt = django_filters.NumberFilter(field_name='price', lookup_expr='lt')
-    price__gte = django_filters.NumberFilter(field_name='price', lookup_expr='gte')
-    price__lte = django_filters.NumberFilter(field_name='price', lookup_expr='lte')
+    price__gt = django_filters.NumberFilter(field_name='stocks__price', lookup_expr='gt')
+    price__lt = django_filters.NumberFilter(field_name='stocks__price', lookup_expr='lt')
+    price__gte = django_filters.NumberFilter(field_name='stocks__price', lookup_expr='gte')
+    price__lte = django_filters.NumberFilter(field_name='stocks__price', lookup_expr='lte')
 
     pages__gt = django_filters.NumberFilter(field_name='pages', lookup_expr='gt')
     pages__lt = django_filters.NumberFilter(field_name='pages', lookup_expr='lt')
@@ -20,4 +20,4 @@ class BookFilter(django_filters.FilterSet):
 
     class Meta:
         model = Books
-        fields = '__all__'
+        fields = ['title', 'category', 'pages', 'publication_date']

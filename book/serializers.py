@@ -1,5 +1,7 @@
+from opcode import name_op
+
 from rest_framework import serializers
-from .models import Books, BookImage, Star, Comment, Like, BookStock, BookCategory
+from .models import Books, BookImage, Star, Comment, Like, BookStock, BookCategory, Category
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Avg
@@ -78,6 +80,11 @@ class BookStockSerializer(serializers.ModelSerializer):
             quantity += last_stock.quantity
 
         return BookStock.objects.create(book=book, quantity=quantity, price=price)
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
 
 class BookCategorySerializer(serializers.ModelSerializer):
     class Meta:

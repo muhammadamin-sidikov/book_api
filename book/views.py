@@ -1,15 +1,17 @@
 from rest_framework import permissions, viewsets, mixins, status, filters
 from rest_framework.generics import get_object_or_404
+from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from permissions import IsStaffOrReadeOnly
 from .filters import BookFilter
-from .models import Books, BookImage, Star, Like, Comment, BookStock, BookCategory
+from .models import Books, BookImage, Star, Like, Comment, BookStock, BookCategory, Category
 from .serializers import (
     BooksSerializer, BookImageSerializer, StarSerializer,
     CommentSerializer, LikeDetailSerializer, BooksLikeSerializer,
-    StarAvgSerializer, BookStockSerializer, BookCategorySerializer
+    StarAvgSerializer, BookStockSerializer, BookCategorySerializer,
+    CategorySerializer,
 )
 
 class BooksViewSet(viewsets.ModelViewSet):
@@ -22,8 +24,19 @@ class BooksViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'author__name']
     ordering_fields = ['price', 'pages', 'publication_date']
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Books.objects.all()
+        return Books.objects.filter(user=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        if instance.user != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied("Siz faqat o'zingizning kitoblaringizni tahrirlashingiz mumkin.")
+        serializer.save()
 
 class BookImageViewSet(viewsets.ModelViewSet):
     queryset = BookImage.objects.all()
@@ -51,7 +64,7 @@ class LikeAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         books = Books.objects.all()
-        serializer = BooksLikeSerializer(books, many=True)
+        serializer = BooksLikeSerializer(books, many=True, context={"request": request})
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
@@ -61,8 +74,7 @@ class LikeAPIView(APIView):
 
         if created:
             return Response({"message": "Liked successfully"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"message": "Already liked"}, status=status.HTTP_200_OK)
+        return Response({"message": "Already liked"}, status=status.HTTP_200_OK)
 
     def delete(self, request, *args, **kwargs):
         book_id = request.data.get('book_id')
@@ -72,8 +84,7 @@ class LikeAPIView(APIView):
         if like:
             like.delete()
             return Response({"message": "Unliked successfully"}, status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({"error": "Like not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "Like not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class BookStockViewSet(viewsets.ModelViewSet):
     queryset = BookStock.objects.all()
@@ -85,12 +96,27 @@ class BookCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = BookCategorySerializer
     permission_classes = [IsStaffOrReadeOnly]
 
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsStaffOrReadeOnly]
+
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Comment.objects.all()
+        return Comment.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         book_id = self.request.data.get('book')
         serializer.save(user=self.request.user, book_id=book_id)
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        if instance.user != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied("Faqat o'zingizning izohlaringizni tahrirlashingiz mumkin.")
+        serializer.save()
 

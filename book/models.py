@@ -73,7 +73,6 @@ class Comment(BaseModel):
     book = models.ForeignKey(Books, on_delete=models.CASCADE, related_name='comment')
     text = models.TextField()
 
-
     def __str__(self):
         return f"Comment by {self.user} on {self.book.title}"
 
@@ -84,33 +83,23 @@ class Like(BaseModel):
     class Meta:
         unique_together = ['book', 'user']
 
-class BookCategory(BaseModel):
-    CATEGORIES = (
-        ('fiction', 'Fiction'),                                                             # Badiiy adabiyotlar
-        ('psychology_and_personal_development', 'Psychology and personal development'),     # Psixologiya va shaxsiy rivojlanish
-        ('business', 'Business'),                                                           # Biznes kitoblar
-        ('Children_literature', "Children's literature"),                                   # Bolalar adabiyoti
-        ('religious_literature', 'Religious literature'),                                   # Diniy adabiyotlar
-        ('books_in_russian', 'Books in Russian'),                                           # Rus tilidagi kitoblar
-        ('sducational_literature', 'Educational literature'),                               # O‘quv adabiyoti
-        ('top_100_bestsellers', 'TOP-100 bestsellers'),                                     # TOP-100 ta bestseller
-        ('bestseller_sets', 'Bestseller sets'),                                             # Bestseller to‘plamlar
-        ('detective', 'Detective'),                                                         # Detektiv
-        ('science_fiction', 'Science Fiction'),                                             # Ilmiy fantastika
-        ('politics', 'Politics'),                                                           # Siyosat
-        ('biography', 'Biography'),                                                         # Biografiya
-        ('book_gift_sets', 'Book gift sets'),                                               # Kitobli sovg‘a to‘plamlari
-        ('turkish_literature', 'Turkish literature'),                                       # Turk adabiyoti
-        ('history', 'History'),                                                             # Tarix
-        ('books_in_english', 'Books in English'),                                           # Ingliz tilida kitoblar
-        ('books_for_collectors', 'Books for collectors')                                    # Kollektorlar uchun kitoblar
-    )
+    def __str__(self):
+        return f"{self.book} - {self.user}"
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class BookCategory(BaseModel):
     book = models.ForeignKey(Books, on_delete=models.CASCADE, related_name='book_category')
-    category = models.CharField(max_length=50, choices=CATEGORIES)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='book_categories')
 
     class Meta:
         unique_together = ['book', 'category']
 
     def __str__(self):
-        return f"{self.book} - {self.category}"
+        return f"{self.book} - {self.category.name}"
+
+# class

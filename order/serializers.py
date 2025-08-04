@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from rest_framework.templatetags.rest_framework import items
-
 from .models import Order, OrderItem
 
 class OrderItemSerializer(serializers.ModelSerializer):
