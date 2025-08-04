@@ -1,5 +1,3 @@
-from opcode import name_op
-
 from rest_framework import serializers
 from .models import Books, BookImage, Star, Comment, Like, BookStock, BookCategory, Category
 from django.contrib.auth import get_user_model
@@ -25,16 +23,11 @@ class StarSerializer(serializers.ModelSerializer):
         }
 
 class StarAvgSerializer(serializers.ModelSerializer):
-    star_avg = serializers.SerializerMethodField()
+    star_avg = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Books
         fields = ['id', 'title', 'star_avg']
-
-    def get_star_avg(self, obj):
-        stars = Star.objects.filter(book=obj)
-        avg = stars.aggregate(models.Avg('rating'))['rating__avg']
-        return round(avg, 2) if avg else 0
 
 class LikeDetailSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
@@ -93,12 +86,12 @@ class BookCategorySerializer(serializers.ModelSerializer):
 
 class BooksSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
-    star_avg = serializers.SerializerMethodField()
+    star_avg = serializers.DecimalField(max_digits=4, decimal_places=2, source='star_avg', read_only=True)
+    like_count = serializers.IntegerField(source='like_count', read_only=True)
+    quantity = serializers.IntegerField(source='latest_quantity', read_only=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, source='latest_price', read_only=True)
     comment = CommentSerializer(many=True, read_only=True)
-    like_count = serializers.SerializerMethodField()
     user = serializers.StringRelatedField(read_only=True)
-    quantity = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
     category = BookCategorySerializer(many=True, read_only=True)
 
     class Meta:
@@ -110,22 +103,6 @@ class BooksSerializer(serializers.ModelSerializer):
             'created_at', 'price', 'image', 'star_avg', 'comment', 'like_count',
         ]
 
-    def get_star_avg(self, obj):
-        stars = Star.objects.filter(book=obj)
-        avg = stars.aggregate(models.Avg('rating'))['rating__avg']
-        return round(avg, 2) if avg else 0
-
-    def get_like_count(self, obj):
-        return obj.like.count()
-
-    def get_quantity(self, obj):
-        stock = BookStock.objects.filter(book=obj).order_by('-created_at').first()
-        return stock.quantity if stock else 0
-
-    def get_price(self, obj):
-        stock = BookStock.objects.filter(book=obj).order_by('-created_at').first()
-        return stock.price if stock else 0
-
     def get_image(self, obj):
-        return BookImage.objects.filter(book=obj).first()
-
+        image = obj.images.first()
+        return BookImageSerializer(image).data if image else None

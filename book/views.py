@@ -1,6 +1,7 @@
 from rest_framework import permissions, viewsets, mixins, status, filters
 from rest_framework.generics import get_object_or_404
 from django.core.exceptions import PermissionDenied
+from django.db.models import Prefetch, Avg, Count, Subquery, OuterRef
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,7 +16,6 @@ from .serializers import (
 )
 
 class BooksViewSet(viewsets.ModelViewSet):
-    queryset = Books.objects.all()
     serializer_class = BooksSerializer
     permission_classes = [IsStaffOrReadeOnly]
 
@@ -25,9 +25,29 @@ class BooksViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'pages', 'publication_date']
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return Books.objects.all()
-        return Books.objects.filter(user=self.request.user)
+        # Subquery for latest stock
+        latest_stock = BookStock.objects.filter(
+            book=OuterRef('pk')
+        ).order_by('-created_at')
+
+        queryset = Books.objects.select_related(
+            'author', 'translator', 'user'
+        ).prefetch_related(
+            'comment',
+            'like',
+            'images',
+            Prefetch('book_category', queryset=BookCategory.objects.select_related('category')),
+        ).annotate(
+            star_avg=Avg('star__rating'),
+            like_count=Count('like'),
+            latest_quantity=Subquery(latest_stock.values('quantity')[:1]),
+            latest_price=Subquery(latest_stock.values('price')[:1]),
+        )
+
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(user=self.request.user)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -87,9 +107,13 @@ class LikeAPIView(APIView):
         return Response({"error": "Like not found"}, status=status.HTTP_404_NOT_FOUND)
 
 class BookStockViewSet(viewsets.ModelViewSet):
-    queryset = BookStock.objects.all()
     serializer_class = BookStockSerializer
     permission_classes = [permissions.IsAdminUser]
+
+    def get_queryset(self):
+        return Books.objects.annotate(
+            star_avg=Avg('star__rating')
+        )
 
 class BookCategoryViewSet(viewsets.ModelViewSet):
     queryset = BookCategory.objects.all()
